@@ -1054,3 +1054,22 @@ reappear.
 **Running it**: see `README.md` — `uvicorn backend.main:app` plus
 `npm run dev` in `frontend/`, two processes, no build step required for
 local use.
+
+**Deployment.** The two services are deployed separately, matching the
+backend/frontend split above rather than forcing them onto one host:
+`backend/` runs on Render (free tier) at
+`https://music-recommender-system-1wvn.onrender.com`, and `frontend/`'s
+static build is deployed on Vercel. The split has one practical
+consequence worth naming rather than hiding: Render's free tier spins the
+service down after inactivity, so the first request after a quiet period
+pays a cold-start cost (tens of seconds) while it wakes back up and refits
+every model from §10's startup step — a real latency trade-off of the
+free-hosting choice, not a bug, and one a paid always-on instance would
+remove. The frontend reads the backend's URL from a build-time
+`VITE_API_BASE` environment variable (`frontend/src/api.js`) rather than a
+hardcoded address, so the same codebase points at `localhost:8000` for
+local development and the Render URL once deployed, with no code change
+between the two. CORS is similarly environment-driven
+(`backend/main.py`'s `ALLOWED_ORIGINS`): unset, it permits any origin,
+which is fine here since the API has no cookies or auth and nothing
+user-identifying beyond an anonymized HetRec listener id to protect.

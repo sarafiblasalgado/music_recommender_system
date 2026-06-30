@@ -54,13 +54,17 @@ from . import feedback_store
 from .artist_images import get_artist_image_url, get_artist_top_track, get_artist_top_tracks
 
 HOME_SECTION_SIZE = 12
-_IMAGE_POOL = ThreadPoolExecutor(max_workers=12)
+# Kept modest on purpose: each worker thread's default stack is several MB,
+# and the free-tier deploy target (512MB total) is shared with pandas/
+# scikit-learn/ALS already resident in memory -- a wider pool was observed
+# to OOM-kill the single worker process under real traffic.
+_IMAGE_POOL = ThreadPoolExecutor(max_workers=4)
 # Deliberately separate and smaller than _IMAGE_POOL: firing image and
 # track lookups at the same concurrency doubles the burst of requests
 # iTunes' (undocumented, fairly aggressive) Search API sees per page load,
 # which risks rate-limiting the artwork lookups too. Tracks are cosmetic,
 # so they're allowed to trickle in slower instead.
-_TRACK_POOL = ThreadPoolExecutor(max_workers=4)
+_TRACK_POOL = ThreadPoolExecutor(max_workers=2)
 
 
 class RecommenderService:
