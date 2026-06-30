@@ -53,18 +53,20 @@ from src.backfill import BackfillRecommender
 from . import feedback_store
 from .artist_images import get_artist_image_url, get_artist_top_track, get_artist_top_tracks
 
-HOME_SECTION_SIZE = 12
-# Kept modest on purpose: each worker thread's default stack is several MB,
+HOME_SECTION_SIZE = 8
+# Kept deliberately small: each worker thread's default stack is several MB,
 # and the free-tier deploy target (512MB total) is shared with pandas/
-# scikit-learn/ALS already resident in memory -- a wider pool was observed
-# to OOM-kill the single worker process under real traffic.
-_IMAGE_POOL = ThreadPoolExecutor(max_workers=4)
+# scikit-learn/ALS already resident in memory. A wider pool (originally 12,
+# then 4) was observed to OOM-kill the single worker process under real
+# traffic on Render's free instance -- 2 was the first value that stayed
+# under the memory ceiling in practice, not a value derived analytically.
+_IMAGE_POOL = ThreadPoolExecutor(max_workers=2)
 # Deliberately separate and smaller than _IMAGE_POOL: firing image and
 # track lookups at the same concurrency doubles the burst of requests
 # iTunes' (undocumented, fairly aggressive) Search API sees per page load,
 # which risks rate-limiting the artwork lookups too. Tracks are cosmetic,
 # so they're allowed to trickle in slower instead.
-_TRACK_POOL = ThreadPoolExecutor(max_workers=2)
+_TRACK_POOL = ThreadPoolExecutor(max_workers=1)
 
 
 class RecommenderService:
