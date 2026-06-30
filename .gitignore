@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+.claude/
+
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Runtime caches/state -- regenerated automatically (image/track lookups
+# re-populate from iTunes/Deezer on demand; feedback starts empty for a
+# fresh deploy rather than shipping this machine's test data).
+data/processed/user_feedback.json
+
+.DS_Store
+.env
+.env.local
+*.log

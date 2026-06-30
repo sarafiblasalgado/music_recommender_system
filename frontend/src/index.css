@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --bg: #0a0a0c;
+  --surface: #161618;
+  --surface-hover: #232326;
+  --accent: #b388ff;
+  --accent-2: #ff5c93;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: #f2f2f4;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+}
+
+/* Horizontal shelves scroll without showing a scrollbar -- the row itself
+   signals scrollability via partial-card overflow at the edge. */
+.shelf-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.shelf-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Small motion-polish set, plain CSS (no animation library in this
+   project) -- card/row entrance, modal pop-in, mini-player slide-up.
+   Every keyframe's end state uses `transform: none` rather than e.g.
+   `translateY(0)` -- visually identical, but a non-`none` transform value
+   creates a new CSS stacking context even when it's the identity
+   transform, which (with `animation-fill-mode: both` keeping that end
+   state applied indefinitely) silently breaks z-index stacking for any
+   popover anchored inside an animated row against its later siblings. */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-fade-up {
+  animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-up-fast {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-fade-up-fast {
+  animation: fade-up-fast 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes modal-pop {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-modal-pop {
+  animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes backdrop-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-backdrop-fade {
+  animation: backdrop-fade 0.15s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-up-fast,
+  .animate-modal-pop,
+  .animate-backdrop-fade {
+    animation: none;
+  }
+}

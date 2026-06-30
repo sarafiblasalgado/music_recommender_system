@@ -1,0 +1,19 @@
+relevance_definition,model,precision@10,ndcg@10
+any_play (q=0.00),most_popular,0.06792754395311668,0.0772837532410962
+any_play (q=0.00),content_based_raw,0.0627064464571124,0.0760024297251789
+any_play (q=0.00),item_item_cf,0.023708044752264252,0.025448533837725763
+any_play (q=0.00),matrix_factorization,0.19227490676611617,0.23562887156644546
+any_play (q=0.00),friend_based,0.11928609483217903,0.1498947578023631
+any_play (q=0.00),graph_diffusion_social,0.12386787426744805,0.15491543325628762
+"median (q=0.50, REPORT.md default)",most_popular,0.04919957310565634,0.08759238418784393
+"median (q=0.50, REPORT.md default)",content_based_raw,0.044930629669156875,0.08464778214222674
+"median (q=0.50, REPORT.md default)",item_item_cf,0.014140875133404483,0.022873800780729668
+"median (q=0.50, REPORT.md default)",matrix_factorization,0.1344717182497332,0.2637575880912101
+"median (q=0.50, REPORT.md default)",friend_based,0.08452508004268945,0.17011219817456652
+"median (q=0.50, REPORT.md default)",graph_diffusion_social,0.08745997865528282,0.17639906089845844
+favourite_tier (q=0.75),most_popular,0.03478510028653294,0.0916427025530076
+favourite_tier (q=0.75),content_based_raw,0.031289398280802294,0.08937701433866786
+favourite_tier (q=0.75),item_item_cf,0.009856733524355302,0.023188940398488123
+favourite_tier (q=0.75),matrix_factorization,0.09266475644699142,0.2771356875731903
+favourite_tier (q=0.75),friend_based,0.05908309455587392,0.18437163546419133
+favourite_tier (q=0.75),graph_diffusion_social,0.0605730659025788,0.18896779483033324

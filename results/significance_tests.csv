@@ -1,0 +1,8 @@
+model_a,model_b,wilcoxon_stat,p_value,significant_at_0.05
+matrix_factorization,friend_based,179240.0,1.8638804858873636e-79,True
+matrix_factorization,hybrid_cf_social,179240.0,1.8638804858873636e-79,True
+friend_based,hybrid_cf_social,0.0,0.31731050786291415,False
+matrix_factorization,most_popular,35178.0,9.845399058719845e-183,True
+matrix_factorization,matrix_factorization_mmr,187786.0,3.39723574246683e-14,True
+graph_diffusion_social,friend_based,149995.5,0.01135841394014311,True
+hybrid_als_social,matrix_factorization,118032.0,7.84654452636539e-05,True

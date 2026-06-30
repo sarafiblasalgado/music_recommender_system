@@ -1,0 +1,45 @@
+
+=== User 2 (listened to 40 artists in training set) ===
+  [most_popular          ] Britney Spears | The Beatles | Rihanna | Katy Perry | Avril Lavigne
+  [most_played           ] Britney Spears | Christina Aguilera | Rihanna | Paramore | The Beatles
+  [random                ] Chris Wollard & The Ship Thieves | Ani DiFranco | Rabones | Reeves & Mortimer | Brygada Kryzys
+  [content_based         ] Massive Attack | Portishead | Emancipator | J.Viewz | Tricky
+  [content_based_raw     ] Massive Attack | Télépopmusik | Moby | Everything but the Girl | The Dust Brothers
+  [user_user_cf          ] Cocteau Twins | Siouxsie and the Banshees | Orchestral Manoeuvres in the Dark | Echo & The Bunnymen | Dolly Parton
+  [item_item_cf          ] Yazoo | Gary Numan | Eurythmics | Ultravox | The Human League
+  [matrix_factorization  ] Pet Shop Boys | U2 | Röyksopp | Moby | Michael Jackson
+  [friend_based          ] Pet Shop Boys | Michael Jackson | Simple Minds | Erasure | The Human League
+  [graph_diffusion_social] Pet Shop Boys | The Cure | Michael Jackson | The Human League | Erasure
+  [hybrid_cf_social      ] Pet Shop Boys | Michael Jackson | Simple Minds | Erasure | The Human League
+  [matrix_factorization_mmr] Pet Shop Boys | U2 | Röyksopp | Michael Jackson | Moby
+  [hybrid_als_social     ] Pet Shop Boys | U2 | Röyksopp | Michael Jackson | Moby
+
+=== User 3 (listened to 40 artists in training set) ===
+  [most_popular          ] Lady Gaga | Britney Spears | The Beatles | Rihanna | Katy Perry
+  [most_played           ] Britney Spears | Depeche Mode | Lady Gaga | Christina Aguilera | Rihanna
+  [random                ] Milburn | Mala Rodríguez | Gloria Estefan | Denali | Strong Arm Steady
+  [content_based         ] Pleq | Silencide | Slander Fall | Hecq | Alarm Will Sound
+  [content_based_raw     ] Igorrr | Gidropony | James Blake | The Bug | Klaus Schulze
+  [user_user_cf          ] (no recommendations)
+  [item_item_cf          ] (no recommendations)
+  [matrix_factorization  ] Boards of Canada | Bonobo | Sigur Rós | Apparat | Aphex Twin
+  [friend_based          ] Aphex Twin | Venetian Snares | Sigur Rós | Apparat | Massive Attack
+  [graph_diffusion_social] Aphex Twin | Venetian Snares | Radiohead | Apparat | Crystal Castles
+  [hybrid_cf_social      ] Aphex Twin | Venetian Snares | Sigur Rós | Apparat | Massive Attack
+  [matrix_factorization_mmr] Boards of Canada | Bonobo | Crystal Castles | Sigur Rós | Radiohead
+  [hybrid_als_social     ] Boards of Canada | Bonobo | Aphex Twin | Sigur Rós | Apparat
+
+=== User 4 (listened to 40 artists in training set) ===
+  [most_popular          ] Lady Gaga | Britney Spears | The Beatles | Rihanna | Katy Perry
+  [most_played           ] Britney Spears | Depeche Mode | Lady Gaga | Christina Aguilera | Rihanna
+  [random                ] 4 Non Blondes | Chase Coy | E Nomine | HEALTH | Soilwork
+  [content_based         ] Cirque du Soleil | Adiemus | Enigma | Karunesh | Karsh Kale
+  [content_based_raw     ] The Future Sound of London | Tangerine Dream | Shpongle | Amorphous Androgynous | Enigma
+  [user_user_cf          ] Christina Aguilera | Nine Inch Nails | Depeche Mode | Björk | Franz Ferdinand
+  [item_item_cf          ] Air | Tegan and Sara | Bat for Lashes | Jeff Buckley | Tori Amos
+  [matrix_factorization  ] Coldplay | Depeche Mode | U2 | a-ha | The Killers
+  [friend_based          ] Depeche Mode | Dave Gahan | Martin L. Gore | Camouflage | Coldplay
+  [graph_diffusion_social] Depeche Mode | Dave Gahan | Martin L. Gore | The Cure | Madonna
+  [hybrid_cf_social      ] Depeche Mode | Dave Gahan | Martin L. Gore | Camouflage | Coldplay
+  [matrix_factorization_mmr] Coldplay | Depeche Mode | U2 | Hans Zimmer | Enigma
+  [hybrid_als_social     ] Coldplay | Depeche Mode | U2 | a-ha | The Killers
