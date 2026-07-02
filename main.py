@@ -36,6 +36,43 @@ from src.evaluation import evaluate_model, compute_popularity_percentiles, paire
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
+# Shared model -> (color, marker) styling used across every comparison
+# figure, so a reader learns "violet = latent-factor, teal = social" once
+# and it holds for every subsequent chart. Hybrids keep their dominant
+# parent's color (per §6/§8's findings on what each hybrid actually
+# degenerates toward) but get a diamond marker to flag "this is a blend,
+# not a single algorithm."
+MODEL_STYLE = {
+    "most_popular":             ("#D97706", "o"),  # amber -- baselines
+    "most_played":              ("#D97706", "o"),
+    "random":                   ("#D97706", "o"),
+    "content_based":            ("#DB2777", "o"),  # pink -- content-based
+    "content_based_raw":        ("#DB2777", "o"),
+    "user_user_cf":             ("#64748B", "o"),  # slate -- neighbourhood CF
+    "item_item_cf":             ("#64748B", "o"),
+    "matrix_factorization":     ("#7C3AED", "o"),  # violet -- latent-factor
+    "matrix_factorization_mmr": ("#7C3AED", "o"),
+    "hybrid_als_social":        ("#7C3AED", "D"),  # violet diamond -- ALS-dominant hybrid
+    "friend_based":             ("#0D9488", "o"),  # teal -- social
+    "graph_diffusion_social":   ("#0D9488", "o"),
+    "hybrid_cf_social":         ("#0D9488", "D"),  # teal diamond -- social-dominant hybrid
+}
+_DEFAULT_STYLE = ("#334155", "o")
+
+
+def _style_for(model_name):
+    return MODEL_STYLE.get(model_name, _DEFAULT_STYLE)
+
+
+def _apply_clean_style(ax):
+    """Shared figure polish: no boxed-in spines, light gridlines behind the
+    data, consistent with treating these as analysis figures a reader
+    should be able to read numbers off of, not decorative chart-junk."""
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.grid(True, axis="y", color="#E2E8F0", linewidth=0.8, zorder=0)
+    ax.set_axisbelow(True)
+
 
 def run_eda(interactions, artists, friends):
     print("\n" + "#" * 60)
@@ -267,20 +304,29 @@ def plot_mmr_tradeoff(sweep_df, selected_lambda, k=config.TOP_K):
     discusses, rather than a single before/after number."""
     if sweep_df.empty or "diversity" not in sweep_df:
         return
-    fig, ax = plt.subplots(figsize=(6.5, 5))
+    from adjustText import adjust_text
+
+    fig, ax = plt.subplots(figsize=(7.5, 5.5))
+    _apply_clean_style(ax)
     ordered = sweep_df.sort_values("lambda")
-    ax.plot(ordered["diversity"], ordered[f"precision@{k}"], color="#7B2CBF", marker="o", zorder=2)
-    for _, row in ordered.iterrows():
+    ax.plot(ordered["diversity"], ordered[f"precision@{k}"], color="#7C3AED",
+             linewidth=1.6, marker="o", markersize=6, zorder=2)
+    texts = [
         ax.annotate(f"λ={row['lambda']:.1f}", (row["diversity"], row[f"precision@{k}"]),
-                    textcoords="offset points", xytext=(6, 4), fontsize=8)
+                    fontsize=9, zorder=4)
+        for _, row in ordered.iterrows()
+    ]
     selected_row = sweep_df[sweep_df["lambda"] == selected_lambda]
     if not selected_row.empty:
-        ax.scatter(selected_row["diversity"], selected_row[f"precision@{k}"], color="#E85D04", s=140,
-                   zorder=3, label=f"selected (λ={selected_lambda:.1f})")
-        ax.legend()
+        ax.scatter(selected_row["diversity"], selected_row[f"precision@{k}"], color="#E85D04",
+                   edgecolor="white", linewidth=1.2, s=180, zorder=3,
+                   label=f"selected (λ={selected_lambda:.1f})")
+        ax.legend(frameon=False, loc="upper right")
+    adjust_text(texts, ax=ax, arrowprops=dict(arrowstyle="-", color="#94A3B8", lw=0.8))
     ax.set_xlabel("Intra-list diversity (validation)")
     ax.set_ylabel(f"Precision@{k} (validation)")
-    ax.set_title("MMR re-ranking: relevance vs. diversity trade-off (Implicit ALS)")
+    ax.set_title("MMR re-ranking: relevance vs. diversity trade-off (Implicit ALS)",
+                 fontsize=12, fontweight="bold", loc="left")
     fig.tight_layout()
     fig.savefig(config.FIGURES_DIR / "mmr_tradeoff.png", dpi=150)
     plt.close(fig)
@@ -484,32 +530,99 @@ def plot_metrics_comparison(metrics_df, k=config.TOP_K):
     metric_cols = [f"precision@{k}", f"recall@{k}", f"ndcg@{k}", f"mrr@{k}"]
     plot_df = metrics_df[metric_cols]
 
-    fig, ax = plt.subplots(figsize=(11, 5))
+    fig, ax = plt.subplots(figsize=(12, 5.5))
+    _apply_clean_style(ax)
     x = np.arange(len(plot_df))
     width = 0.2
-    colors = ["#028090", "#00A896", "#21295C", "#84B59F"]
+    colors = ["#7C3AED", "#0D9488", "#D97706", "#DB2777"]
     for i, col in enumerate(metric_cols):
-        ax.bar(x + i * width, plot_df[col].values, width, label=col, color=colors[i])
+        ax.bar(x + i * width, plot_df[col].values, width, label=col, color=colors[i],
+               zorder=3, edgecolor="white", linewidth=0.5)
     ax.set_xticks(x + width * 1.5)
-    ax.set_xticklabels(plot_df.index, rotation=30, ha="right")
-    ax.set_title(f"Model comparison @k={k}")
-    ax.legend()
+    ax.set_xticklabels(plot_df.index, rotation=35, ha="right", fontsize=9)
+    # Color each model's x-tick label by its algorithm family (MODEL_STYLE),
+    # tying this chart into the same visual vocabulary as the scatter/bar
+    # figures below even though the bars themselves are colored by metric.
+    for label in ax.get_xticklabels():
+        color, _ = _style_for(label.get_text())
+        label.set_color(color)
+        label.set_fontweight("bold")
+    ax.set_title(f"Model comparison @k={k}", fontsize=13, fontweight="bold", loc="left")
+    ax.legend(frameon=False, ncol=4, loc="upper center", bbox_to_anchor=(0.5, 1.12))
     fig.tight_layout()
     fig.savefig(config.FIGURES_DIR / "metrics_comparison.png", dpi=150)
     plt.close(fig)
 
 
 def plot_coverage_novelty(metrics_df):
+    """Coverage vs. novelty, colored/marked by algorithm family (MODEL_STYLE)
+    with non-overlapping leader-line labels (adjustText) -- several models
+    land close together here (e.g. friend_based and hybrid_cf_social are
+    near-identical per §6/§8's finding that the hybrid degenerates to
+    friend-based), so naive fixed-offset annotation collides badly."""
     if "catalog_coverage" not in metrics_df or "novelty" not in metrics_df:
         return
-    fig, ax = plt.subplots(figsize=(6.5, 5))
-    ax.scatter(metrics_df["novelty"], metrics_df["catalog_coverage"], s=80, color="#990011")
-    for name, row in metrics_df.iterrows():
-        ax.annotate(name, (row["novelty"], row["catalog_coverage"]),
-                    textcoords="offset points", xytext=(6, 4), fontsize=9)
+    from adjustText import adjust_text
+
+    fig, ax = plt.subplots(figsize=(9, 7))
+    _apply_clean_style(ax)
+
+    # Some models land close enough in (novelty, coverage) that adjustText
+    # alone still can't separate their labels legibly -- most notably
+    # friend_based and hybrid_cf_social, which are near-identical points by
+    # construction (the hybrid weight collapsed to 0% CF / 100% social,
+    # §6/§8). Rather than fight that with more repulsion, group points
+    # within a small normalized distance and give the group one combined
+    # label ("a ≈ b") instead of two colliding ones -- the merged label is
+    # itself an honest summary of what the chart is showing.
+    nov_range = metrics_df["novelty"].max() - metrics_df["novelty"].min()
+    cov_range = metrics_df["catalog_coverage"].max() - metrics_df["catalog_coverage"].min()
+    names = list(metrics_df.index)
+    groups, used = [], set()
+    for i, name_i in enumerate(names):
+        if name_i in used:
+            continue
+        group = [name_i]
+        used.add(name_i)
+        xi = metrics_df.loc[name_i, "novelty"] / nov_range
+        yi = metrics_df.loc[name_i, "catalog_coverage"] / cov_range
+        for name_j in names[i + 1:]:
+            if name_j in used:
+                continue
+            xj = metrics_df.loc[name_j, "novelty"] / nov_range
+            yj = metrics_df.loc[name_j, "catalog_coverage"] / cov_range
+            if ((xi - xj) ** 2 + (yi - yj) ** 2) ** 0.5 < 0.02:
+                group.append(name_j)
+                used.add(name_j)
+        groups.append(group)
+
+    texts = []
+    for group in groups:
+        for name in group:
+            color, marker = _style_for(name)
+            row = metrics_df.loc[name]
+            ax.scatter(row["novelty"], row["catalog_coverage"], s=110, color=color, marker=marker,
+                       edgecolor="white", linewidth=1.0, zorder=3)
+        label = " ≈ ".join(group)
+        anchor = metrics_df.loc[group[0]]
+        texts.append(ax.annotate(label, (anchor["novelty"], anchor["catalog_coverage"]), fontsize=9, zorder=4))
+    adjust_text(texts, ax=ax, arrowprops=dict(arrowstyle="-", color="#94A3B8", lw=0.8),
+                expand=(1.6, 2.0))
+
+    from matplotlib.lines import Line2D
+    family_legend = [
+        Line2D([0], [0], marker="o", color="w", markerfacecolor=c, markersize=9, label=l)
+        for c, l in [("#D97706", "Baseline"), ("#DB2777", "Content-based"),
+                     ("#64748B", "Neighbourhood CF"), ("#7C3AED", "Latent-factor / ALS"),
+                     ("#0D9488", "Social")]
+    ]
+    family_legend.append(Line2D([0], [0], marker="D", color="w", markerfacecolor="#475569",
+                                 markersize=9, label="Hybrid"))
+    ax.legend(handles=family_legend, frameon=False, loc="upper left", fontsize=9)
+
     ax.set_xlabel("Novelty (mean -log2 popularity of recs)")
     ax.set_ylabel("Catalog coverage")
-    ax.set_title("Beyond-accuracy: coverage vs. novelty")
+    ax.set_title("Beyond-accuracy: coverage vs. novelty", fontsize=13, fontweight="bold", loc="left")
     fig.tight_layout()
     fig.savefig(config.FIGURES_DIR / "coverage_vs_novelty.png", dpi=150)
     plt.close(fig)
@@ -521,17 +634,26 @@ def plot_popularity_bias(metrics_df):
     beyond-accuracy lens from novelty/coverage. The dashed line at 0.5
     marks "recommends from the middle of the popularity distribution on
     average"; bars well above it indicate a model leaning on the catalog's
-    head, bars well below indicate a long-tail/niche skew.
+    head, bars well below indicate a long-tail/niche skew. Bars are colored
+    by the same algorithm-family scheme as the other comparison figures.
     """
     if "popularity_bias" not in metrics_df:
         return
-    fig, ax = plt.subplots(figsize=(9, 4.5))
+    fig, ax = plt.subplots(figsize=(10, 5))
+    _apply_clean_style(ax)
     order = metrics_df["popularity_bias"].sort_values(ascending=False)
-    ax.bar(order.index, order.values, color="#E85D04")
-    ax.axhline(0.5, color="gray", linestyle="--", linewidth=1)
+    colors = [_style_for(name)[0] for name in order.index]
+    bars = ax.bar(order.index, order.values, color=colors, zorder=3,
+                   edgecolor="white", linewidth=0.5)
+    for bar, val in zip(bars, order.values):
+        ax.text(bar.get_x() + bar.get_width() / 2, val + 0.012, f"{val:.2f}",
+                ha="center", va="bottom", fontsize=8, color="#334155")
+    ax.axhline(0.5, color="#94A3B8", linestyle="--", linewidth=1, zorder=2)
+    ax.set_ylim(0, 1.08)
     ax.set_ylabel("Mean popularity percentile of recommended items")
-    ax.set_title("Popularity bias by model (1.0 = always the most popular item)")
-    ax.set_xticklabels(order.index, rotation=30, ha="right")
+    ax.set_title("Popularity bias by model (1.0 = always the most popular item)",
+                 fontsize=13, fontweight="bold", loc="left")
+    ax.set_xticklabels(order.index, rotation=35, ha="right", fontsize=9)
     fig.tight_layout()
     fig.savefig(config.FIGURES_DIR / "popularity_bias.png", dpi=150)
     plt.close(fig)

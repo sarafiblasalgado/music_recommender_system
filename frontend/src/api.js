@@ -1,7 +1,10 @@
-// In production this is set via the VITE_API_BASE environment variable
-// (e.g. Vercel project settings) pointing at the deployed backend; falls
-// back to localhost for local dev with no setup required.
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+// In production this is set at build time, pointing at the deployed
+// backend -- or left as an empty string when the frontend is served
+// same-origin with the API (Caddy reverse-proxying /api on the same EC2
+// box), so requests resolve relative to whatever domain served the page.
+// Falls back to localhost only when truly unset (local dev) -- nullish
+// coalescing, not ||, since "" is a deliberate, valid value here.
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 
 async function getJSON(path) {
   const res = await fetch(`${API_BASE}${path}`);

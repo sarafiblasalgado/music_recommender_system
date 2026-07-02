@@ -19,3 +19,10 @@ data/processed/user_feedback.json
 .env
 .env.local
 *.log
+
+# LaTeX build artifacts -- REPORT.tex is the source of truth, REPORT.pdf
+# is the committed compiled output; everything else regenerates on `xelatex`.
+*.aux
+*.out
+*.toc
+*.synctex.gz

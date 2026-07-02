@@ -1055,21 +1055,37 @@ reappear.
 `npm run dev` in `frontend/`, two processes, no build step required for
 local use.
 
-**Deployment.** The two services are deployed separately, matching the
-backend/frontend split above rather than forcing them onto one host:
-`backend/` runs on Render (free tier) at
-`https://music-recommender-system-1wvn.onrender.com`, and `frontend/`'s
-static build is deployed on Vercel. The split has one practical
-consequence worth naming rather than hiding: Render's free tier spins the
-service down after inactivity, so the first request after a quiet period
-pays a cold-start cost (tens of seconds) while it wakes back up and refits
-every model from §10's startup step — a real latency trade-off of the
-free-hosting choice, not a bug, and one a paid always-on instance would
-remove. The frontend reads the backend's URL from a build-time
-`VITE_API_BASE` environment variable (`frontend/src/api.js`) rather than a
-hardcoded address, so the same codebase points at `localhost:8000` for
-local development and the Render URL once deployed, with no code change
-between the two. CORS is similarly environment-driven
-(`backend/main.py`'s `ALLOWED_ORIGINS`): unset, it permits any origin,
-which is fine here since the API has no cookies or auth and nothing
-user-identifying beyond an anonymized HetRec listener id to protect.
+**Deployment.** Live at `https://13.49.21.10.nip.io`. Both services run on
+a single AWS EC2 instance (`t3.micro`, 1 vCPU, 1GB RAM) rather than on two
+separate platforms: **Caddy** serves `frontend/`'s static production build
+directly and reverse-proxies `/api/*` to the FastAPI backend on
+`127.0.0.1:8000`, so both are reached through the same origin. That choice
+wasn't the starting point — it's worth recording why, since it's a real
+example of a deployment decision driven by measurement rather than
+preference. The first attempt put the backend on Render's free tier
+(512MB) and the frontend on Vercel, the conventional split for a
+JS-frontend/Python-backend app. Render's free instance reliably **OOM-killed**
+the single worker process under real traffic on `/api/home/{id}` — the
+heaviest endpoint, since it resolves real artwork and track previews for
+every card in a request via two `ThreadPoolExecutor`s (§10's *Artist
+artwork* and *Track titles* sections). This was confirmed directly, not
+inferred: Render's dashboard logs the exact event, `Ran out of memory
+(used over 512MB) while running your code`. Two rounds of trimming
+thread-pool concurrency (16 workers down to 3) and shelf size (12 items
+down to 8) reduced but did not eliminate the crashes — the four fitted
+models (ALS, content-based TF-IDF/count vectors, the interaction
+dataframe) already consumed a large share of the 512MB budget before a
+single request arrived, so request-time trimming had a hard ceiling. The
+EC2 instance's 1GB (plus a 2GB swap file added as a margin, not a
+substitute) resolved it outright: the same unmodified code that crashed
+Render peaks at roughly 525MB serving a full, untrimmed home feed — over
+Render's entire ceiling, comfortably under this instance's. Consolidating
+onto one host also removed the CORS configuration `backend/main.py`'s
+`ALLOWED_ORIGINS` env var existed for and the `VITE_API_BASE` build-time
+indirection in `frontend/src/api.js` — same-origin requests need neither.
+HTTPS is automatic and free (Let's Encrypt via Caddy, using a
+`<ip>.nip.io` hostname rather than a purchased domain), and `systemd`
+restarts the backend on crash or reboot. The trade-off this setup keeps,
+inherited from the original Render plan: there's no managed
+auto-scaling or zero-downtime deploys, appropriate for a single-instance
+course-project demo, not a production multi-tenant service.
